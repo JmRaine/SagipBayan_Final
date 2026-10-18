@@ -1,0 +1,12 @@
+# yaml-language-server: $schema=https://www.coderabbit.ai/integrations/schema.v2.json
+language: "en"
+reviews:
+  profile: "chill"
+  path_instructions:
+    - path: "**"
+      instructions: |
+        You are an expert staff engineer. When checking this repo:
+        1. Look out for security flaws, specifically OWASP Top 10 vulnerabilities.
+        2. Ensure all functions have clear Docstrings.
+        3. Make sure code aligns with DRY (Don't Repeat Yourself) principles.
+        4. Do not nitpick on formatting that our linter already covers.
