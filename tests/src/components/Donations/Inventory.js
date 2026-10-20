@@ -33,9 +33,21 @@ import {
 import { resolveInventoryType } from "./inventoryTypeUtils";
 import {
   getTodayInputDate,
-  getInventoryExpiryStatus,
   validateFutureOrTodayInventoryDate,
 } from "./inventoryExpiryUtils";
+import {
+  formatDate,
+  formatExpiryDate,
+  formatHistoryDateLabel,
+  formatMoney,
+  getCategoryLabel,
+  getExpiryBadgeClass,
+  getExpiryBadgeLabel,
+  getExpiryStatus,
+  getSourceLabel,
+  isExpiryRequiredCategory,
+  NON_EXPIRING_GOODS_CATEGORIES,
+} from "./inventoryPresentationUtils";
 import {
   INVENTORY_HISTORY_MAX_DATE,
   INVENTORY_HISTORY_MIN_DATE,
@@ -99,23 +111,6 @@ const DEFAULT_TABLE_PAGE_SIZE = 10;
 const TEMPLATE_PAGE_SIZE = 6;
 const TOAST_LIMIT = 3;
 const TOAST_DURATION = 10000;
-const DEFAULT_NON_EXPIRING_GOODS_CATEGORIES = new Set([
-  "clothes",
-  "clothing",
-  "shoes",
-  "shoe",
-  "shoes/footwear",
-  "footwear",
-  "blankets",
-  "blanket",
-  "mats",
-  "mat",
-  "towels",
-  "towel",
-  "bedding",
-  "mosquito nets",
-  "mosquito net"
-]);
 const CUSTOM_CATEGORY_VALUE = "__custom__";
 const CUSTOM_UNIT_VALUE = "__custom_unit__";
 const MAX_QUANTITY = 1000000;
@@ -272,82 +267,10 @@ export default function Inventory() {
   );
   const historyActive = isInventoryHistoryActive({ asOf: historyAsOfDate });
 
-  const isExpiryRequiredCategory = (value) => {
-    const v = normalize(value);
-    if (!v) return false;
-    return !DEFAULT_NON_EXPIRING_GOODS_CATEGORIES.has(v);
-  };
-
-  const getExpiryStatus = (item) => {
-    return getInventoryExpiryStatus(item?.expirationDate);
-  };
-
-  const getExpiryBadgeLabel = (item) => {
-    const status = getExpiryStatus(item);
-    if (status === "expired") return "Expired";
-    if (status === "soon") return "Expiring Soon";
-    return "";
-  };
-
-  const getExpiryBadgeClass = (item) => {
-    const status = getExpiryStatus(item);
-    if (status === "expired") return "badge-expiry-expired";
-    if (status === "soon") return "badge-expiry-soon";
-    if (status === "ok") return "badge-expiry-ok";
-    return "badge-expiry-none";
-  };
-
   const buildGoodsMergeKey = useCallback((item = {}) =>
     [normalize(item.name), normalize(item.category), normalize(item.unit)].join(
       "||"
     ), [normalize]);
-
-  const getCategoryLabel = (value) => {
-    const v = String(value || "").trim();
-    if (!v) return "Uncategorized";
-    return v
-      .split(" ")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
-  };
-
-  const getSourceLabel = (value) => {
-    const normalized = String(value || "").trim().toLowerCase();
-    if (!normalized) return "-";
-    if (normalized === "external") return "Donated";
-    if (normalized === "internal") return "LGU";
-    if (normalized === "government") return "NGO";
-    const v = String(value || "").trim();
-    return v.charAt(0).toUpperCase() + v.slice(1);
-  };
-
-  const formatDate = (date) => {
-    if (!date) return "-";
-    return new Date(date).toLocaleString();
-  };
-
-  const formatHistoryDateLabel = (date) => {
-    if (!date) return "";
-    const parsed = new Date(`${String(date).slice(0, 10)}T00:00:00`);
-    if (Number.isNaN(parsed.getTime())) return String(date);
-
-    return parsed.toLocaleDateString("en-US", {
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
-
-  const formatExpiryDate = (date) => {
-    if (!date) return "-";
-    return new Date(date).toLocaleDateString();
-  };
-
-  const formatMoney = (amount) =>
-    `PHP ${Number(amount || 0).toLocaleString("en-PH", {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2
-    })}`;
 
   const extractReferenceFromDescription = useCallback((description) => {
     const text = String(description || "");
@@ -1002,7 +925,7 @@ export default function Inventory() {
     const defaults =
       itemForm.type === "appliance"
         ? DEFAULT_APPLIANCE_CATEGORIES
-        : Array.from(DEFAULT_NON_EXPIRING_GOODS_CATEGORIES);
+        : Array.from(NON_EXPIRING_GOODS_CATEGORIES);
     const merged = [
       ...new Set(
         [...defaults, ...sourceItems.map((item) => String(item.category || "").trim().toLowerCase())].filter(Boolean)

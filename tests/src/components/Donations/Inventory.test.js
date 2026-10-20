@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import axios from "axios";
 import Inventory from "./Inventory";
+import { getTodayInputDate } from "./inventoryExpiryUtils";
 
 jest.mock("axios");
 
@@ -88,7 +89,7 @@ describe("Inventory", () => {
     expect(await screen.findByText("History")).toBeInTheDocument();
     const historyDateInput = container.querySelector(".inventory-history-date");
     expect(historyDateInput).not.toBeNull();
-    expect(historyDateInput).toHaveAttribute("max", "2026-08-23");
+    expect(historyDateInput).toHaveAttribute("max", getTodayInputDate());
   });
 
   test("returns to live mode when the history date is cleared", async () => {
