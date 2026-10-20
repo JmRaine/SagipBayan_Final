@@ -11,14 +11,13 @@ import {
   ScrollView,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import * as FileSystem from "expo-file-system/legacy";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 
 import { UserContext } from "./UserContext";
 import { useTheme } from "./contexts/ThemeContext";
 import { useAppChrome } from "./contexts/AppChromeContext";
-import api, { getApiBaseUrl } from "../lib/api";
+import api, { uploadSingleFile } from "../lib/api";
 import { safeDisplayText } from "./utils/validation";
 
 const DEFAULT_AVATAR =
@@ -71,36 +70,17 @@ export default function Profile({ navigation }) {
     try {
       setUploading(true);
 
-      const API_BASE_URL = await getApiBaseUrl();
-
-      const uploadResult = await FileSystem.uploadAsync(
-        `${API_BASE_URL}/user/avatar/${user._id}`,
-        picked.uri,
-        {
-          httpMethod: "PUT",
-          uploadType: 1,
-          fieldName: "avatar",
-          mimeType,
-          parameters: {},
-        }
-      );
-
-      let responseData = {};
-
-      try {
-        responseData = uploadResult.body ? JSON.parse(uploadResult.body) : {};
-      } catch (_) {
-        responseData = { message: uploadResult.body };
-      }
+      const uploadResult = await uploadSingleFile(`/user/avatar/${user._id}`, picked.uri, {
+        httpMethod: "PUT",
+        fieldName: "avatar",
+        mimeType,
+      });
+      const responseData = uploadResult.data || {};
 
       console.log("Avatar upload response:", {
         status: uploadResult.status,
         body: responseData,
       });
-
-      if (uploadResult.status < 200 || uploadResult.status >= 300) {
-        throw new Error(responseData?.message || "Avatar upload failed.");
-      }
 
       const updatedUser = responseData?.user || {
         ...user,
