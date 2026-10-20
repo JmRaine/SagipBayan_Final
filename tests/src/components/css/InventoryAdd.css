@@ -2810,3 +2810,36 @@
     flex: 0 0 14px !important;
   }
 }
+
+/* The component stylesheet loads after ThemeTokens, so keep its list filters dark here. */
+:root[data-theme="dark"] .inventory-page .donation-list-card .filter-toolbar {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(34, 197, 94, 0.1), transparent 30%),
+    linear-gradient(145deg, rgba(8, 47, 26, 0.98), rgba(5, 35, 19, 0.98)) !important;
+  border-color: rgba(178, 219, 191, 0.24) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03) !important;
+}
+
+:root[data-theme="dark"] .inventory-page .donation-list-card .filter-toolbar .filter-group label,
+:root[data-theme="dark"] .inventory-page .donation-list-card .filter-toolbar .rows-control label {
+  color: #bfe2c8 !important;
+}
+
+:root[data-theme="dark"] .inventory-page .donation-list-card .filter-toolbar .filter-actions .btn.btn-secondary,
+:root[data-theme="dark"] .inventory-page .donation-list-card .filter-toolbar .filter-actions .btn.btn-secondary:disabled {
+  background: rgba(17, 78, 43, 0.9) !important;
+  color: #f3fff6 !important;
+  border-color: rgba(178, 219, 191, 0.28) !important;
+  opacity: 1 !important;
+}
+
+:root[data-theme="dark"] .inventory-page .donation-list-card .filter-toolbar .filter-actions .btn.btn-secondary:disabled {
+  background: rgba(17, 78, 43, 0.54) !important;
+  color: #b9d6c1 !important;
+  border-color: rgba(178, 219, 191, 0.16) !important;
+}
+
+:root[data-theme="dark"] .inventory-page .donation-list-card .filter-toolbar select option {
+  background: #052716;
+  color: #f3fff6;
+}

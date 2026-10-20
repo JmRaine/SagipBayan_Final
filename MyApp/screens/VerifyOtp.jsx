@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import api from "../lib/api";
 import { UserContext } from "./UserContext";
@@ -103,16 +104,7 @@ export default function VerifyOtp({ route, navigation }) {
       });
 
       if (purpose === "passwordReset") {
-        let resetUserId = userId;
-
-        if (!resetUserId) {
-          const res = await api.get("/user/users");
-          const users = Array.isArray(res.data) ? res.data : [];
-          const user = users.find(
-            (item) => normalizeEmail(item?.email) === safeEmail
-          );
-          resetUserId = user?._id || user?.id;
-        }
+        const resetUserId = userId || verifyResponse?.data?.userId;
 
         if (!resetUserId) {
           Alert.alert("Error", "Account not found after OTP verification.");
@@ -128,20 +120,20 @@ export default function VerifyOtp({ route, navigation }) {
         return;
       }
 
-      Alert.alert("Success", "OTP verified.");
+      const authenticatedUser = verifyResponse?.data?.user;
+      const token = verifyResponse?.data?.token;
 
-      const res = await api.get("/user/users");
-      const users = Array.isArray(res.data) ? res.data : [];
-      const user = users.find(
-        (item) => normalizeEmail(item?.email) === safeEmail
-      );
-
-      if (!user) {
-        Alert.alert("Error", "User not found after OTP verification.");
+      if (authenticatedUser?._id && token) {
+        await AsyncStorage.setItem("token", token);
+        await setUser({ ...authenticatedUser, id: authenticatedUser._id });
+        Alert.alert(
+          "Success",
+          purpose === "two_factor" ? "Sign-in verified." : "Account verified successfully."
+        );
         return;
       }
 
-      setUser(user);
+      Alert.alert("Error", "We could not complete account verification. Please try again.");
     } catch (err) {
       Alert.alert("Error", err?.response?.data?.message || "Invalid OTP.");
     } finally {

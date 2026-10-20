@@ -18,9 +18,13 @@ export const UserProvider = ({ children }) => {
 
     const loadUser = async () => {
       try {
-        const storedUser = await AsyncStorage.getItem("user");
+        const [storedUser, storedToken] = await Promise.all([
+          AsyncStorage.getItem("user"),
+          AsyncStorage.getItem("token"),
+        ]);
 
-        if (!storedUser) {
+        if (!storedUser || !storedToken) {
+          await AsyncStorage.multiRemove(["user", "token"]);
           setUser(null);
           return;
         }
@@ -28,7 +32,7 @@ export const UserProvider = ({ children }) => {
         const parsedUser = JSON.parse(storedUser);
 
         if (!parsedUser?._id) {
-          await AsyncStorage.removeItem("user");
+          await AsyncStorage.multiRemove(["user", "token"]);
           setUser(null);
           return;
         }
@@ -47,7 +51,7 @@ export const UserProvider = ({ children }) => {
         }
       } catch (err) {
         console.error("Failed to refresh user:", err);
-        await AsyncStorage.removeItem("user");
+        await AsyncStorage.multiRemove(["user", "token"]);
         setUser(null);
       } finally {
         setLoading(false);
@@ -65,11 +69,11 @@ export const UserProvider = ({ children }) => {
       if (persist) {
         await AsyncStorage.setItem("user", JSON.stringify(data));
       } else {
-        await AsyncStorage.removeItem("user");
+        await AsyncStorage.multiRemove(["user", "token"]);
       }
     } else {
       setUser(null);
-      await AsyncStorage.removeItem("user");
+      await AsyncStorage.multiRemove(["user", "token"]);
     }
   };
 
