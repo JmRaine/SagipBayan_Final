@@ -20,6 +20,7 @@ API_URL = os.getenv(
 ).rstrip("/")
 
 CAMERA_ID = "cam_1"
+YOLO_AGENT_TOKEN = os.getenv("YOLO_AGENT_TOKEN", "").strip()
 
 
 # ------------------- STATUS LEVELS -------------------
@@ -185,7 +186,12 @@ def send_to_backend(distance, warningLevel):
     }
 
     try:
-        response = requests.post(API_URL, json=data, timeout=5)
+        headers = (
+            {"x-yolo-agent-token": YOLO_AGENT_TOKEN}
+            if YOLO_AGENT_TOKEN
+            else {}
+        )
+        response = requests.post(API_URL, json=data, headers=headers, timeout=5)
 
         if response.status_code >= 200 and response.status_code < 300:
             print("Sent:", data)
